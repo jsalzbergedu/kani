@@ -1,6 +1,11 @@
+use std::ptr::addr_of_mut;
 // Created by Jacob Salzberg
+// Requires -Zfunction-contracts
 static mut MY_POINTER: Option<*mut i32> = None;
 
+#[kani::modifies(addr_of_mut!(MY_POINTER))]
+#[kani::requires(unsafe {MY_POINTER == None})]
+#[kani::ensures(unsafe {MY_POINTER.is_some()})]
 fn reference_dies() {
   let mut x: i32 = 2;
   unsafe {
@@ -9,12 +14,12 @@ fn reference_dies() {
   }
 }
 
-#[kani::proof]
+#[kani::proof_for_contract(reference_dies)]
 fn main() {
   reference_dies();
   unsafe {
     match MY_POINTER {
-        None => { unreachable!() },
+        None => { () },
         Some(x) => { let _y = *x; },
     }
   }
